@@ -1,17 +1,69 @@
 <!DOCTYPE html>
-<html lang="ar" dir="rtl">
+<html lang="ar" dir="rtl" data-theme="light">
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
-    <title>الجدول الذكي - علوم حاسب</title>
+    <title>الجدول الذكي | علوم حاسب</title>
+    <!-- استدعاء خط Cairo الاحترافي وأيقونات FontAwesome -->
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;800;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
     <style>
+        /* ===== المتغيرات الأساسية (Light Theme) ===== */
         :root {
-            --primary-color: #2c3e50;
-            --secondary-color: #34495e;
-            --accent-color: #3498db;
-            --bg-color: #f0f4f8;
-            --card-bg: #ffffff;
-            --text-main: #2d3748;
+            --primary: #0f172a;
+            --secondary: #334155;
+            --accent: #2563eb;
+            --accent-hover: #1d4ed8;
+            --bg-color: #f1f5f9;
+            --card-bg: rgba(255, 255, 255, 0.95);
+            --text-main: #1e293b;
+            --text-muted: #64748b;
+            --border-color: rgba(226, 232, 240, 0.8);
+            
+            --day-header-bg: #e2e8f0;
+            --lecture-bg: linear-gradient(135deg, #eff6ff 0%, #dbeafe 100%);
+            --lecture-text: #1e40af;
+            --lecture-border: #3b82f6;
+            
+            --section-bg: linear-gradient(135deg, #fffbeb 0%, #fef3c7 100%);
+            --section-text: #92400e;
+            --section-border: #f59e0b;
+            
+            --active-now-bg: linear-gradient(135deg, #dcfce7 0%, #bbf7d0 100%);
+            --active-now-border: #22c55e;
+            --active-now-text: #166534;
+            
+            --glass-shadow: 0 10px 40px -10px rgba(0,0,0,0.08);
+            --transition: all 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* ===== الوضع الليلي (Dark Theme - Vercel/Linear style) ===== */
+        [data-theme="dark"] {
+            --primary: #f8fafc;
+            --secondary: #94a3b8;
+            --accent: #3b82f6;
+            --accent-hover: #60a5fa;
+            --bg-color: #020617;
+            --card-bg: rgba(15, 23, 42, 0.85);
+            --text-main: #f1f5f9;
+            --text-muted: #94a3b8;
+            --border-color: rgba(51, 65, 85, 0.5);
+            
+            --day-header-bg: #0f172a;
+            --lecture-bg: linear-gradient(135deg, #172554 0%, #1e3a8a 100%);
+            --lecture-text: #bfdbfe;
+            --lecture-border: #2563eb;
+            
+            --section-bg: linear-gradient(135deg, #451a03 0%, #78350f 100%);
+            --section-text: #fde68a;
+            --section-border: #d97706;
+            
+            --active-now-bg: linear-gradient(135deg, #052e16 0%, #14532d 100%);
+            --active-now-border: #22c55e;
+            --active-now-text: #86efac;
+            
+            --glass-shadow: 0 10px 40px -10px rgba(0,0,0,0.5);
         }
 
         * {
@@ -20,388 +72,761 @@
         }
 
         body {
-            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            font-family: 'Cairo', sans-serif;
             background-color: var(--bg-color);
+            background-image: radial-gradient(circle at top right, rgba(37, 99, 235, 0.05), transparent 40%),
+                              radial-gradient(circle at bottom left, rgba(245, 158, 11, 0.05), transparent 40%);
             color: var(--text-main);
             margin: 0;
-            padding: 15px;
+            padding: 20px 10px;
             line-height: 1.6;
+            min-height: 100vh;
+            transition: var(--transition);
         }
 
         .container {
-            max-width: 1200px;
+            max-width: 1250px;
             margin: 0 auto;
             background: var(--card-bg);
-            padding: 20px;
-            border-radius: 16px;
-            box-shadow: 0 10px 25px rgba(0,0,0,0.05);
+            backdrop-filter: blur(16px);
+            -webkit-backdrop-filter: blur(16px);
+            padding: 30px;
+            border-radius: 24px;
+            box-shadow: var(--glass-shadow);
+            border: 1px solid var(--border-color);
+            position: relative;
         }
 
+        /* ===== أدوات التحكم العلوية ===== */
+        .toolbar {
+            position: absolute;
+            top: 25px;
+            left: 25px;
+            display: flex;
+            gap: 12px;
+            z-index: 10;
+        }
+
+        .icon-btn {
+            background: var(--bg-color);
+            color: var(--text-main);
+            border: 1px solid var(--border-color);
+            border-radius: 50%;
+            width: 45px;
+            height: 45px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.2rem;
+            cursor: pointer;
+            transition: var(--transition);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+        .icon-btn:hover { transform: translateY(-3px); box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); }
+        .icon-btn.primary { color: var(--accent); }
+
+        /* ===== رأس الصفحة ===== */
         .header-section {
             text-align: center;
-            margin-bottom: 25px;
-            padding-bottom: 15px;
-            border-bottom: 2px solid #edf2f7;
+            margin-bottom: 30px;
         }
-
         h2 { 
-            color: var(--primary-color); 
-            margin-bottom: 8px; 
-            font-size: 1.5rem;
+            color: var(--primary); 
+            margin: 0 0 5px 0; 
+            font-size: 2rem;
+            font-weight: 900;
+            letter-spacing: -0.5px;
         }
-        p.subtitle { 
-            color: #718096; 
-            margin: 0; 
+        p.subtitle { color: var(--text-muted); margin: 0; font-size: 1.1rem; font-weight: 600; }
+        
+        .live-clock {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--active-now-bg);
+            color: var(--active-now-text);
+            padding: 6px 16px;
+            border-radius: 20px;
+            font-weight: 700;
             font-size: 0.95rem;
+            margin-top: 15px;
+            border: 1px solid var(--active-now-border);
+            box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
         }
 
-        /* أزرار الفلتر (متوافقة مع اللمس) */
-        .filters {
+        /* ===== فلاتر السكاشن ===== */
+        .filters-wrapper {
+            position: sticky;
+            top: 15px;
+            z-index: 100;
+            background: var(--card-bg);
+            backdrop-filter: blur(20px);
+            padding: 10px;
+            border-radius: 100px;
+            box-shadow: 0 10px 25px -5px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+            border: 1px solid var(--border-color);
             display: flex;
             justify-content: center;
-            flex-wrap: wrap;
-            gap: 10px;
-            margin-bottom: 25px;
-            position: sticky;
-            top: 10px;
-            z-index: 100;
-            background: rgba(255, 255, 255, 0.9);
-            padding: 10px;
-            border-radius: 12px;
-            backdrop-filter: blur(5px);
         }
+
+        .filters {
+            display: flex;
+            gap: 8px;
+            overflow-x: auto;
+            -webkit-overflow-scrolling: touch;
+            scrollbar-width: none; /* Firefox */
+        }
+        .filters::-webkit-scrollbar { display: none; }
 
         .filter-btn {
-            background-color: white;
-            border: 2px solid var(--accent-color);
-            color: var(--accent-color);
-            padding: 10px 20px;
-            border-radius: 30px;
+            background: transparent;
+            border: none;
+            color: var(--text-muted);
+            padding: 10px 24px;
+            border-radius: 100px;
             font-size: 1rem;
-            font-weight: bold;
+            font-weight: 800;
+            font-family: inherit;
             cursor: pointer;
-            transition: all 0.2s ease;
-            flex-grow: 1;
-            max-width: 120px;
-            text-align: center;
+            transition: var(--transition);
+            white-space: nowrap;
         }
 
-        .filter-btn:hover { background-color: #ebf5fb; }
+        .filter-btn:hover { background: var(--bg-color); color: var(--text-main); }
         .filter-btn.active {
-            background-color: var(--accent-color);
+            background: var(--accent);
             color: white;
-            box-shadow: 0 4px 12px rgba(52, 152, 219, 0.4);
+            box-shadow: 0 4px 15px rgba(37, 99, 235, 0.4);
             transform: scale(1.05);
         }
 
-        /* تصميم الجدول الأساسي للشاشات الكبيرة */
+        /* ===== تصميم الجدول ===== */
         table {
             width: 100%;
-            border-collapse: collapse;
-        }
-
-        th, td {
-            border: 1px solid #edf2f7;
-            padding: 15px 10px;
-            text-align: center;
-            vertical-align: middle;
+            border-collapse: separate;
+            border-spacing: 0;
+            border-radius: 20px;
+            overflow: hidden;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.05);
         }
 
         th {
-            background-color: var(--secondary-color);
-            color: white;
-            font-weight: 600;
+            background: var(--primary);
+            color: var(--bg-color);
+            padding: 18px 10px;
+            font-weight: 800;
+            font-size: 1.1rem;
+            border: 1px solid rgba(255,255,255,0.1);
+        }
+        th span { display: block; font-size: 0.85rem; font-weight: 600; opacity: 0.8; margin-top: 4px; font-family: sans-serif; }
+
+        td {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            vertical-align: top;
+            transition: var(--transition);
         }
 
         .day-name { 
-            background-color: #e2e8f0; 
-            font-weight: bold; 
-            color: var(--primary-color); 
-            font-size: 1.1rem;
+            background: var(--day-header-bg); 
+            font-weight: 900; 
+            font-size: 1.3rem;
+            text-align: center;
+            vertical-align: middle;
+            position: relative;
         }
 
-        .lecture, .section {
-            border-radius: 8px;
-            padding: 10px;
-            margin: 6px auto;
-            width: 95%;
+        /* ===== البطاقات (المحاضرات والسكاشن) ===== */
+        .item-card {
+            border-radius: 12px;
+            padding: 12px 14px;
+            margin-bottom: 10px;
             font-size: 0.95rem;
-            transition: all 0.3s ease;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.03);
+            font-weight: 700;
+            transition: var(--transition);
+            position: relative;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            border-right: 5px solid;
+            animation: slideUp 0.5s ease backwards;
         }
+        .item-card:last-child { margin-bottom: 0; }
+        .item-card:hover { transform: translateY(-3px) scale(1.02); box-shadow: 0 10px 15px -3px rgba(0,0,0,0.1); }
 
-        .lecture {
-            background-color: #e0f2fe;
-            color: #0369a1;
-            font-weight: bold;
-            border-right: 5px solid #0284c7;
-        }
-
-        .section {
-            background-color: #fef3c7;
-            color: #b45309;
-            border-right: 5px solid #d97706;
-        }
+        .lecture { background: var(--lecture-bg); color: var(--lecture-text); border-color: var(--lecture-border); }
+        .section { background: var(--section-bg); color: var(--section-text); border-color: var(--section-border); }
         
-        .section b { color: #92400e; display: block; margin-bottom: 3px;}
+        .card-header { display: flex; align-items: center; justify-content: space-between; font-size: 1.05rem; }
+        .card-title { display: flex; align-items: center; gap: 8px; font-weight: 800; }
+        .card-room { font-size: 0.85rem; opacity: 0.8; background: rgba(0,0,0,0.05); padding: 2px 8px; border-radius: 6px; }
+        
+        /* أيقونات المواد */
+        .card-title i { font-size: 1.1em; opacity: 0.9; }
 
         .hidden { display: none !important; }
-        .empty-slot { color: #cbd5e1; font-style: italic; }
+        
+        /* ===== مؤشرات الوقت واليوم النشط ===== */
+        .is-today .day-name { background: var(--active-now-bg); color: var(--active-now-text); }
+        .today-badge {
+            background: var(--active-now-border);
+            color: white;
+            font-size: 0.75rem;
+            padding: 3px 10px;
+            border-radius: 12px;
+            position: absolute;
+            top: 8px; left: 50%; transform: translateX(-50%);
+            animation: pulse 2s infinite;
+        }
 
-        /* ========= سحر الموبايل (Responsive Card Layout) ========= */
-        @media screen and (max-width: 768px) {
-            body { padding: 10px; }
-            .container { padding: 15px; border-radius: 12px; }
-            
-            table, thead, tbody, th, td, tr {
-                display: block;
-            }
+        /* تنسيق المحاضرة الشغالة حالياً */
+        .now-active-slot {
+            position: relative;
+        }
+        .now-active-slot::before {
+            content: '⏱️ الآن';
+            position: absolute;
+            top: -12px; right: 15px;
+            background: var(--active-now-border); color: white;
+            font-size: 0.8rem; font-weight: bold;
+            padding: 2px 10px; border-radius: 10px;
+            z-index: 5; box-shadow: 0 4px 6px rgba(0,0,0,0.1);
+        }
+        .now-active-slot .item-card:not(.hidden) {
+            background: var(--active-now-bg);
+            border-color: var(--active-now-border);
+            color: var(--active-now-text);
+            box-shadow: 0 0 0 2px var(--active-now-border);
+        }
 
-            /* إخفاء رأس الجدول لأنه سيتم تحويله لنصوص داخل البطاقات */
-            thead tr {
-                position: absolute;
-                top: -9999px;
-                left: -9999px;
-            }
+        .free-day {
+            display: none;
+            color: var(--active-now-text);
+            font-weight: 800;
+            font-size: 1.3rem;
+            padding: 30px;
+            text-align: center;
+            background: var(--active-now-bg);
+            border-radius: 16px;
+            margin: 15px;
+            border: 2px dashed var(--active-now-border);
+        }
+
+        @keyframes slideUp {
+            from { opacity: 0; transform: translateY(15px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+        @keyframes pulse {
+            0% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0.7); }
+            70% { box-shadow: 0 0 0 8px rgba(34, 197, 94, 0); }
+            100% { box-shadow: 0 0 0 0 rgba(34, 197, 94, 0); }
+        }
+
+        /* ===== التوافق مع شاشات الموبايل ===== */
+        @media screen and (max-width: 850px) {
+            body { padding: 10px 5px; }
+            .container { padding: 20px 15px; border-radius: 20px; }
+            .toolbar { position: relative; top: 0; left: 0; justify-content: center; margin-bottom: 20px; }
+            h2 { font-size: 1.6rem; }
+            .filters-wrapper { border-radius: 16px; padding: 5px; }
+            .filter-btn { padding: 8px 20px; font-size: 0.95rem; }
+
+            table, thead, tbody, th, td, tr { display: block; border: none; }
+            thead tr { display: none; }
 
             tr {
                 margin-bottom: 25px;
-                background: #fff;
-                border-radius: 12px;
-                box-shadow: 0 5px 15px rgba(0,0,0,0.08);
-                border: 1px solid #edf2f7;
+                background: var(--bg-color);
+                border-radius: 20px;
+                border: 1px solid var(--border-color);
                 overflow: hidden;
+                box-shadow: 0 4px 6px -1px rgba(0,0,0,0.05);
             }
 
-            .day-name {
-                background-color: var(--primary-color);
-                color: white;
-                font-size: 1.4rem;
+            .day-name { padding: 15px; text-align: right; border-bottom: 2px solid var(--border-color); }
+            .today-badge { left: 15px; right: auto; transform: none; top: 15px; }
+
+            td:not(.day-name) {
                 padding: 15px;
-                text-align: center;
-                border-bottom: 3px solid var(--accent-color);
+                border-bottom: 1px solid rgba(0,0,0,0.05);
             }
+            td:last-child { border-bottom: none; }
 
-            td {
-                border: none;
-                border-bottom: 1px solid #f1f5f9;
-                position: relative;
-                padding: 45px 15px 15px 15px; /* مساحة للعنوان الوهمي */
-                text-align: center;
-                min-height: 80px;
-            }
-
-            td:last-child {
-                border-bottom: none;
-            }
-
-            /* إنشاء عناوين الفترات داخل الموبايل */
             td::before {
                 content: attr(data-label);
-                position: absolute;
-                top: 10px;
-                left: 15px;
-                right: 15px;
-                font-size: 0.9rem;
-                font-weight: bold;
-                color: #4a5568;
-                background-color: #edf2f7;
-                padding: 5px;
-                border-radius: 6px;
-                text-align: center;
+                display: inline-block;
+                font-size: 0.85rem;
+                font-weight: 800;
+                color: var(--text-muted);
+                margin-bottom: 12px;
+                background: var(--card-bg);
+                padding: 5px 12px;
+                border-radius: 8px;
+                border: 1px solid var(--border-color);
             }
+            .now-active-slot::before { top: 10px; right: auto; left: 15px; }
+            td.day-name::before { display: none; }
+        }
 
-            /* إخفاء العنوان الوهمي من خلية اليوم */
-            td.day-name::before {
-                display: none;
-            }
-            td.day-name {
-                padding: 15px;
-            }
-
-            .lecture, .section {
-                width: 100%;
-                font-size: 1rem;
-            }
-            
-            .filters {
-                top: 0;
-                padding: 15px 5px;
-            }
+        /* ===== الطباعة (Print CSS) ===== */
+        @media print {
+            body { background: white; padding: 0; }
+            .container { box-shadow: none; border: none; padding: 0; max-width: 100%; }
+            .toolbar, .filters-wrapper, .live-clock, .today-badge { display: none !important; }
+            table { border-collapse: collapse; }
+            th, td { border: 1px solid #000; padding: 8px; }
+            .item-card { border: none; padding: 0; margin: 0; break-inside: avoid; }
+            .card-header { font-size: 12pt; }
+            .item-card.hidden { display: none !important; }
         }
     </style>
 </head>
 <body>
 
 <div class="container">
+    <!-- أدوات التحكم العلوية -->
+    <div class="toolbar">
+        <button class="icon-btn" id="themeToggle" title="الوضع الليلي/النهاري"><i class="fas fa-moon"></i></button>
+        <button class="icon-btn primary" onclick="shareApp()" title="مشاركة الجدول"><i class="fas fa-share-nodes"></i></button>
+        <button class="icon-btn" onclick="window.print()" title="طباعة الجدول"><i class="fas fa-print"></i></button>
+    </div>
+
+    <!-- رأس الصفحة -->
     <div class="header-section">
-        <h2>معهد علوم الحاسب - 6 أكتوبر</h2>
-        <p class="subtitle">جدول المستوى الثالث (الربيع 2025/2026)</p>
+        <h2>معهد علوم الحاسب بـ 6 أكتوبر</h2>
+        <p class="subtitle">الجدول الذكي | المستوى الثالث | الربيع 2025/2026</p>
+        <div class="live-clock" id="liveClock"><i class="fas fa-clock"></i> جارِ تحميل الوقت...</div>
     </div>
 
-    <!-- أزرار الفلترة التفاعلية -->
-    <div class="filters">
-        <button class="filter-btn active" onclick="filterSchedule('all')">الكل</button>
-        <button class="filter-btn" onclick="filterSchedule('1')">Sec 1</button>
-        <button class="filter-btn" onclick="filterSchedule('2')">Sec 2</button>
-        <button class="filter-btn" onclick="filterSchedule('3')">Sec 3</button>
-        <button class="filter-btn" onclick="filterSchedule('4')">Sec 4</button>
-        <button class="filter-btn" onclick="filterSchedule('5')">Sec 5</button>
+    <!-- فلاتر السكاشن -->
+    <div class="filters-wrapper">
+        <div class="filters" id="filtersContainer">
+            <button class="filter-btn active" onclick="filterSchedule('all')">الكل</button>
+            <button class="filter-btn" onclick="filterSchedule('1')">Sec 1</button>
+            <button class="filter-btn" onclick="filterSchedule('2')">Sec 2</button>
+            <button class="filter-btn" onclick="filterSchedule('3')">Sec 3</button>
+            <button class="filter-btn" onclick="filterSchedule('4')">Sec 4</button>
+            <button class="filter-btn" onclick="filterSchedule('5')">Sec 5</button>
+        </div>
     </div>
 
+    <!-- الجدول الزمني -->
     <table>
         <thead>
             <tr>
                 <th>اليوم</th>
-                <th>الفترة 1 و 2 (9:00 - 10:30)</th>
-                <th>الفترة 3 و 4 (10:30 - 12:00)</th>
-                <th>الفترة 5 و 6 (12:00 - 1:30)</th>
-                <th>الفترة 7 و 8 (1:30 - 3:00)</th>
+                <th>الفترة 1 و 2 <span>09:00 - 10:30</span></th>
+                <th>الفترة 3 و 4 <span>10:30 - 12:00</span></th>
+                <th>الفترة 5 و 6 <span>12:00 - 13:30</span></th>
+                <th>الفترة 7 و 8 <span>13:30 - 15:00</span></th>
             </tr>
         </thead>
         <tbody>
             <!-- الأحد -->
-            <tr>
-                <td class="day-name">الأحد</td>
-                <td data-label="الفترة 1 و 2 (9:00 - 10:30)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> شبكات متقدمة (ق 2205)</div>
-                    <div class="section" data-sec="4"><b>Sec 4</b> موضوعات 4 (ق 2109)</div>
+            <tr data-day="0">
+                <td class="day-name">الأحد <span class="today-badge" style="display:none;">اليوم</span></td>
+                
+                <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                    <div class="item-card section" data-sec="1" style="animation-delay: 0.1s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">ق 2205</span></div>
+                        <div><b>Sec 1</b> | م.م. هبه فضل</div>
+                    </div>
+                    <div class="item-card section" data-sec="4" style="animation-delay: 0.15s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-book"></i> موضوعات مختارة 4</span> <span class="card-room">ق 2109</span></div>
+                        <div><b>Sec 4</b> | م. علاء عماد</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 3 و 4 (10:30 - 12:00)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> معالجة صور (ق 2109)</div>
-                    <div class="section" data-sec="2"><b>Sec 2</b> ذكاء اصطناعي (ق 2206)</div>
-                    <div class="section" data-sec="3"><b>Sec 3</b> مترجمات (ق 2205)</div>
+                
+                <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                    <div class="item-card section" data-sec="1" style="animation-delay: 0.2s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور رقمية</span> <span class="card-room">ق 2109</span></div>
+                        <div><b>Sec 1</b> | م.م. نيفين</div>
+                    </div>
+                    <div class="item-card section" data-sec="2" style="animation-delay: 0.25s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i> ذكاء اصطناعي</span> <span class="card-room">ق 2206</span></div>
+                        <div><b>Sec 2</b> | م. علاء عماد</div>
+                    </div>
+                    <div class="item-card section" data-sec="3" style="animation-delay: 0.3s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">ق 2205</span></div>
+                        <div><b>Sec 3</b> | م. أحمد مصطفى</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 5 و 6 (12:00 - 1:30)">
-                    <div class="lecture" data-secs="2,3,4,5">📢 محاضرة (Sec 2,3,4,5)<br>الذكاء الاصطناعي (مدرج 1220)</div>
+                
+                <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                    <div class="item-card lecture" data-secs="2,3,4,5" style="animation-delay: 0.35s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-bullhorn"></i> ذكاء اصطناعي</span> <span class="card-room">مدرج 1220</span></div>
+                        <div><b>محاضرة (S 2,3,4,5)</b> | د. أحمد جابر</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 7 و 8 (1:30 - 3:00)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> ذكاء اصطناعي (ق 2109)</div>
-                    <div class="section" data-sec="2"><b>Sec 2</b> معالجة صور (ق 2107)</div>
-                    <div class="section" data-sec="5"><b>Sec 5</b> شبكات متقدمة (ق 2206)</div>
+                
+                <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                    <div class="item-card section" data-sec="1" style="animation-delay: 0.4s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i> ذكاء اصطناعي</span> <span class="card-room">ق 2109</span></div>
+                        <div><b>Sec 1</b> | م. علاء عماد</div>
+                    </div>
+                    <div class="item-card section" data-sec="2" style="animation-delay: 0.45s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور رقمية</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 2</b> | م.م. نيفين</div>
+                    </div>
+                    <div class="item-card section" data-sec="5" style="animation-delay: 0.5s;">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">ق 2206</span></div>
+                        <div><b>Sec 5</b> | م. علي حماد</div>
+                    </div>
                 </td>
+                <div class="free-day"><i class="fas fa-party-horn"></i> يوم إجازة سعيد! 🎉</div>
             </tr>
+
             <!-- الإثنين -->
-            <tr>
-                <td class="day-name">الإثنين</td>
-                <td data-label="الفترة 1 و 2 (9:00 - 10:30)">
-                    <div class="lecture" data-secs="1,2,3,4">📢 محاضرة (Sec 1,2,3,4)<br>موضوعات 4 (مدرج 1220)</div>
+            <tr data-day="1">
+                <td class="day-name">الإثنين <span class="today-badge" style="display:none;">اليوم</span></td>
+                
+                <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                    <div class="item-card lecture" data-secs="1,2,3,4">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-book"></i> موضوعات مختارة 4</span> <span class="card-room">مدرج 1220</span></div>
+                        <div><b>محاضرة متصلة</b> | د. أشرف فهمي</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 3 و 4 (10:30 - 12:00)">
-                    <div class="lecture" data-secs="1,2,3,4">*(تكملة المحاضرة السابقة)*</div>
-                    <div class="section" data-sec="5"><b>Sec 5</b> ذكاء اصطناعي (ق 2203)</div>
+                
+                <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                    <div class="item-card lecture" data-secs="1,2,3,4">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-arrow-right"></i> تكملة المحاضرة السابقة</span></div>
+                    </div>
+                    <div class="item-card section" data-sec="5">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i> ذكاء اصطناعي</span> <span class="card-room">ق 2203</span></div>
+                        <div><b>Sec 5</b> | م. علاء عماد</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 5 و 6 (12:00 - 1:30)">
-                    <div class="section" data-sec="2"><b>Sec 2</b> واقع افتراضي (ق 2206)</div>
-                    <div class="section" data-sec="3"><b>Sec 3</b> معالجة صور (ق 2105)</div>
-                    <div class="section" data-sec="5"><b>Sec 5</b> ذكاء اصطناعي (ق 2109)</div>
+                
+                <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                    <div class="item-card section" data-sec="2">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-vr-cardboard"></i> واقع افتراضي</span> <span class="card-room">ق 2206</span></div>
+                        <div><b>Sec 2</b> | م. ماريانا صفوت</div>
+                    </div>
+                    <div class="item-card section" data-sec="3">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور</span> <span class="card-room">ق 2105</span></div>
+                        <div><b>Sec 3</b> | م.م. نيفين</div>
+                    </div>
+                    <div class="item-card section" data-sec="5">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i> ذكاء اصطناعي</span> <span class="card-room">ق 2109</span></div>
+                        <div><b>Sec 5</b> | م. علاء عماد</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 7 و 8 (1:30 - 3:00)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> موضوعات 4 (ق 2103)</div>
-                    <div class="section" data-sec="4"><b>Sec 4</b> واقع افتراضي (ق 2206)</div>
-                    <div class="section" data-sec="5"><b>Sec 5</b> معالجة صور (ق 2107)</div>
+                
+                <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                    <div class="item-card section" data-sec="1">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-book"></i> موضوعات مختارة 4</span> <span class="card-room">ق 2103</span></div>
+                        <div><b>Sec 1</b> | م. علاء عماد</div>
+                    </div>
+                    <div class="item-card section" data-sec="4">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-vr-cardboard"></i> واقع افتراضي</span> <span class="card-room">ق 2206</span></div>
+                        <div><b>Sec 4</b> | م. ماريانا صفوت</div>
+                    </div>
+                    <div class="item-card section" data-sec="5">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 5</b> | م.م. نيفين</div>
+                    </div>
                 </td>
+                <div class="free-day"><i class="fas fa-party-horn"></i> يوم إجازة سعيد! 🎉</div>
             </tr>
+
             <!-- الثلاثاء -->
-            <tr>
-                <td class="day-name">الثلاثاء</td>
-                <td data-label="الفترة 1 و 2 (9:00 - 10:30)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>شبكات متقدمة (مدرج 3214)</div>
+            <tr data-day="2">
+                <td class="day-name">الثلاثاء <span class="today-badge" style="display:none;">اليوم</span></td>
+                
+                <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">مدرج 3214</span></div>
+                        <div><b>محاضرة (الكل)</b> | د. مروة العادلي</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 3 و 4 (10:30 - 12:00)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>معالجة صور (مدرج 3214)</div>
+                
+                <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور رقمية</span> <span class="card-room">مدرج 3214</span></div>
+                        <div><b>محاضرة (الكل)</b> | د. أشرف فهمي</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 5 و 6 (12:00 - 1:30)">
-                    <div class="section" data-sec="4"><b>Sec 4</b> تصميم مترجمات (ق 2107)</div>
+                
+                <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                    <div class="item-card section" data-sec="4">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 4</b> | م. أحمد مصطفى</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 7 و 8 (1:30 - 3:00)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> تصميم مترجمات (ق 2205)</div>
-                    <div class="section" data-sec="5"><b>Sec 5</b> معالجة صور (ق 2107)</div>
+                
+                <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                    <div class="item-card section" data-sec="1">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">ق 2205</span></div>
+                        <div><b>Sec 1</b> | م. أحمد مصطفى</div>
+                    </div>
+                    <div class="item-card section" data-sec="5">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-image"></i> معالجة صور</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 5</b> | م. أحمد عز</div>
+                    </div>
                 </td>
+                <div class="free-day"><i class="fas fa-party-horn"></i> يوم إجازة سعيد! 🎉</div>
             </tr>
+
             <!-- الأربعاء -->
-            <tr>
-                <td class="day-name">الأربعاء</td>
-                <td data-label="الفترة 1 و 2 (9:00 - 10:30)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> تصميم مترجمات (ق 2208)</div>
-                    <div class="section" data-sec="2"><b>Sec 2</b> شبكات متقدمة (ق 2105)</div>
-                    <div class="section" data-sec="4"><b>Sec 4</b> ذكاء اصطناعي (ق 2107)</div>
+            <tr data-day="3">
+                <td class="day-name">الأربعاء <span class="today-badge" style="display:none;">اليوم</span></td>
+                
+                <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                    <div class="item-card section" data-sec="1">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">ق 2208</span></div>
+                        <div><b>Sec 1</b> | م. أحمد مصطفى</div>
+                    </div>
+                    <div class="item-card section" data-sec="2">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">ق 2105</span></div>
+                        <div><b>Sec 2</b> | م.م. هبه فضل</div>
+                    </div>
+                    <div class="item-card section" data-sec="4">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-brain"></i> ذكاء اصطناعي</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 4</b> | م. علاء عماد</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 3 و 4 (10:30 - 12:00)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>إكتشاف المعرفة (مدرج 3101)</div>
+                
+                <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-search-plus"></i> إكتشاف المعرفة</span> <span class="card-room">مدرج 3101</span></div>
+                        <div><b>محاضرة (الكل)</b> | د. أميمة جوهر</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 5 و 6 (12:00 - 1:30)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>تحليل بيانات كبيرة (مدرج 3102)</div>
+                
+                <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-database"></i> تحليل بيانات كبيرة</span> <span class="card-room">مدرج 3102</span></div>
+                        <div><b>محاضرة (الكل)</b> | د. فرج محمود</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 7 و 8 (1:30 - 3:00)">
-                    <div class="section" data-sec="2"><b>Sec 2</b> موضوعات 4 (ق 2103)</div>
-                    <div class="section" data-sec="3"><b>Sec 3</b> تصميم مترجمات (ق 2107)</div>
+                
+                <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                    <div class="item-card section" data-sec="2">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-book"></i> موضوعات مختارة 4</span> <span class="card-room">ق 2103</span></div>
+                        <div><b>Sec 2</b> | م. دينا أيمن</div>
+                    </div>
+                    <div class="item-card section" data-sec="3">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 3</b> | م. أحمد مصطفى</div>
+                    </div>
                 </td>
+                <div class="free-day"><i class="fas fa-party-horn"></i> يوم إجازة سعيد! 🎉</div>
             </tr>
+
             <!-- الخميس -->
-            <tr>
-                <td class="day-name">الخميس</td>
-                <td data-label="الفترة 1 و 2 (9:00 - 10:30)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>واقع افتراضي (مدرج 3214)</div>
+            <tr data-day="4">
+                <td class="day-name">الخميس <span class="today-badge" style="display:none;">اليوم</span></td>
+                
+                <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-vr-cardboard"></i> واقع افتراضي</span> <span class="card-room">مدرج 3214</span></div>
+                        <div><b>محاضرة (الكل)</b> | أ.م.د. حسام البحيري</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 3 و 4 (10:30 - 12:00)">
-                    <div class="lecture" data-secs="all">📢 محاضرة (جميع السكاشن)<br>تصميم مترجمات (مدرج 3214)</div>
+                
+                <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                    <div class="item-card lecture" data-secs="all">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-code"></i> تصميم مترجمات</span> <span class="card-room">مدرج 3214</span></div>
+                        <div><b>محاضرة (الكل)</b> | د. محمد عيسى</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 5 و 6 (12:00 - 1:30)">
-                    <div class="section" data-sec="1"><b>Sec 1</b> شبكات متقدمة (ق 2107)</div>
-                    <div class="section" data-sec="2"><b>Sec 2</b> شبكات متقدمة (ق 2206)</div>
-                    <div class="section" data-sec="3"><b>Sec 3</b> واقع افتراضي (ق 2103)</div>
+                
+                <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                    <div class="item-card section" data-sec="1">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">ق 2107</span></div>
+                        <div><b>Sec 1</b> | م.م. دينا جمال</div>
+                    </div>
+                    <div class="item-card section" data-sec="2">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-network-wired"></i> شبكات متقدمة</span> <span class="card-room">ق 2206</span></div>
+                        <div><b>Sec 2</b> | م. علي حماد</div>
+                    </div>
+                    <div class="item-card section" data-sec="3">
+                        <div class="card-header"><span class="card-title"><i class="fas fa-vr-cardboard"></i> واقع افتراضي</span> <span class="card-room">ق 2103</span></div>
+                        <div><b>Sec 3</b> | م. ماريانا صفوت</div>
+                    </div>
                 </td>
-                <td data-label="الفترة 7 و 8 (1:30 - 3:00)">
-                    <span class="empty-slot">(لا يوجد مواعيد)</span>
+                
+                <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                    <!-- لا يوجد محاضرات -->
                 </td>
+                <div class="free-day"><i class="fas fa-party-horn"></i> يوم إجازة سعيد! 🎉</div>
             </tr>
         </tbody>
     </table>
 </div>
 
 <script>
+    // -----------------------------------------------------------------
+    // نظام الثيم الذكي (Dark/Light)
+    // -----------------------------------------------------------------
+    const themeToggleBtn = document.getElementById('themeToggle');
+    const htmlElement = document.documentElement;
+    const icon = themeToggleBtn.querySelector('i');
+
+    const savedTheme = localStorage.getItem('theme') || 'light';
+    htmlElement.setAttribute('data-theme', savedTheme);
+    updateIcon(savedTheme);
+
+    themeToggleBtn.addEventListener('click', () => {
+        const currentTheme = htmlElement.getAttribute('data-theme');
+        const newTheme = currentTheme === 'light' ? 'dark' : 'light';
+        htmlElement.setAttribute('data-theme', newTheme);
+        localStorage.setItem('theme', newTheme);
+        updateIcon(newTheme);
+    });
+
+    function updateIcon(theme) {
+        if (theme === 'dark') {
+            icon.className = 'fas fa-sun';
+            icon.style.color = '#fbbf24';
+        } else {
+            icon.className = 'fas fa-moon';
+            icon.style.color = '#1e293b';
+        }
+    }
+
+    // -----------------------------------------------------------------
+    // ساعة النظام وتحديد المحاضرة الشغالة (Live Time Tracking)
+    // -----------------------------------------------------------------
+    function updateLiveClock() {
+        const now = new Date();
+        const timeStr = now.toLocaleTimeString('ar-EG', { hour: '2-digit', minute: '2-digit' });
+        document.getElementById('liveClock').innerHTML = `<i class="fas fa-clock fa-spin" style="animation-duration: 3s;"></i> ${timeStr}`;
+
+        const today = now.getDay(); // الأحد=0
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
+
+        // 1. تحديد اليوم الحالي
+        document.querySelectorAll('tr[data-day]').forEach(row => {
+            const isToday = parseInt(row.getAttribute('data-day')) === today;
+            if (isToday) {
+                row.classList.add('is-today');
+                row.querySelector('.today-badge').style.display = 'inline-block';
+            } else {
+                row.classList.remove('is-today');
+                row.querySelector('.today-badge').style.display = 'none';
+            }
+
+            // 2. تحديد المحاضرة الحالية (الآن)
+            row.querySelectorAll('td[data-start]').forEach(cell => {
+                const start = parseInt(cell.getAttribute('data-start'));
+                const end = parseInt(cell.getAttribute('data-end'));
+                
+                if (isToday && currentMinutes >= start && currentMinutes < end) {
+                    cell.classList.add('now-active-slot');
+                } else {
+                    cell.classList.remove('now-active-slot');
+                }
+            });
+        });
+    }
+    
+    // تحديث الساعة كل دقيقة
+    setInterval(updateLiveClock, 60000);
+
+    // -----------------------------------------------------------------
+    // نظام الفلترة والتنظيف للموبايل
+    // -----------------------------------------------------------------
     function filterSchedule(secId) {
-        // تفعيل الزر المختار فقط
+        // تأثير الزر
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
         event.target.classList.add('active');
 
-        // إظهار/إخفاء السكاشن العملية
-        const sections = document.querySelectorAll('.section');
-        sections.forEach(sec => {
-            if (secId === 'all' || sec.getAttribute('data-sec') === secId) {
-                sec.classList.remove('hidden');
-            } else {
-                sec.classList.add('hidden');
-            }
+        // إعادة تشغيل الأنيميشن للبطاقات
+        const cards = document.querySelectorAll('.item-card');
+        cards.forEach(card => {
+            card.style.animation = 'none';
+            card.offsetHeight; /* trigger reflow */
+            card.style.animation = null;
         });
 
-        // إظهار/إخفاء المحاضرات المشتركة
-        const lectures = document.querySelectorAll('.lecture');
-        lectures.forEach(lec => {
-            const allowedSecs = lec.getAttribute('data-secs');
-            if (secId === 'all' || allowedSecs === 'all' || allowedSecs.includes(secId)) {
-                lec.classList.remove('hidden');
-            } else {
-                lec.classList.add('hidden');
-            }
+        // فلترة الكروت
+        cards.forEach(card => {
+            const isSection = card.classList.contains('section');
+            const targetSec = card.getAttribute('data-sec');
+            const targetSecs = card.getAttribute('data-secs');
+
+            let shouldShow = false;
+            if (secId === 'all') shouldShow = true;
+            else if (isSection && targetSec === secId) shouldShow = true;
+            else if (!isSection && (targetSecs === 'all' || targetSecs.includes(secId))) shouldShow = true;
+
+            if (shouldShow) card.classList.remove('hidden');
+            else card.classList.add('hidden');
         });
 
-        // تحسين العرض للموبايل: إخفاء الفترات الفارغة تماماً لتوفير المساحة
-        if(window.innerWidth <= 768) {
-            const tds = document.querySelectorAll('td:not(.day-name)');
-            tds.forEach(td => {
-                const visibleChildren = Array.from(td.children).filter(child => !child.classList.contains('hidden'));
-                if(visibleChildren.length === 0 && td.querySelector('.empty-slot') === null) {
-                    td.style.display = 'none';
+        checkEmptyStates();
+        
+        // تمرير الأزرار للمنتصف في شاشات الموبايل
+        event.target.scrollIntoView({ behavior: 'smooth', block: 'nearest', inline: 'center' });
+    }
+
+    function checkEmptyStates() {
+        const rows = document.querySelectorAll('tr[data-day]');
+        const isMobile = window.innerWidth <= 850;
+
+        rows.forEach(row => {
+            let dayHasClasses = false;
+            const cells = row.querySelectorAll('td:not(.day-name)');
+            const freeDayMsg = row.querySelector('.free-day');
+
+            cells.forEach(cell => {
+                const visibleCards = Array.from(cell.children).filter(child => 
+                    child.classList.contains('item-card') && !child.classList.contains('hidden')
+                );
+
+                if (visibleCards.length > 0) {
+                    dayHasClasses = true;
+                    if (isMobile) cell.style.display = 'block';
                 } else {
-                    td.style.display = 'block';
+                    if (isMobile) cell.style.display = 'none';
                 }
             });
+
+            if (!dayHasClasses) {
+                if(document.querySelector('.filter-btn.active').innerText !== 'الكل') {
+                    freeDayMsg.style.display = 'block';
+                    if(isMobile) row.style.display = 'block';
+                } else {
+                    freeDayMsg.style.display = 'none';
+                }
+            } else {
+                freeDayMsg.style.display = 'none';
+                if(isMobile) row.style.display = 'block';
+            }
+        });
+    }
+
+    // -----------------------------------------------------------------
+    // زر المشاركة
+    // -----------------------------------------------------------------
+    function shareApp() {
+        if (navigator.share) {
+            navigator.share({
+                title: 'الجدول الذكي - علوم حاسب',
+                text: 'شوف جدول المستوى الثالث التفاعلي من هنا!',
+                url: window.location.href,
+            }).catch(console.error);
+        } else {
+            // نسخ الرابط كبديل
+            navigator.clipboard.writeText(window.location.href);
+            alert("تم نسخ رابط الجدول بنجاح! يمكنك إرساله لأصدقائك.");
         }
     }
+
+    // تهيئة الصفحة عند الفتح
+    document.addEventListener('DOMContentLoaded', () => {
+        updateLiveClock();
+        checkEmptyStates();
+    });
+    window.addEventListener('resize', checkEmptyStates);
+
 </script>
 
 </body>
 </html>
+
 
