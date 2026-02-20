@@ -11,11 +11,11 @@
     <script src="https://cdnjs.cloudflare.com/ajax/libs/html2pdf.js/0.10.1/html2pdf.bundle.min.js"></script>
     
     <style>
-        /* ===== المتغيرات الأساسية (الوضع الليلي الاحترافي - Deep Dark) ===== */
+        /* ===== المتغيرات الأساسية (الوضع الليلي الافتراضي) ===== */
         :root {
-            --bg-base: #0b1120; /* لون خلفية عميق جداً */
-            --bg-card: #1e293b; /* لون الكروت */
-            --bg-card-hover: #334155;
+            --bg-base: #0f172a;
+            --bg-card: #1e293b;
+            --bg-cell: #0f172a;
             --text-primary: #f8fafc;
             --text-secondary: #94a3b8;
             --border-color: #334155;
@@ -24,17 +24,17 @@
             --accent-orange: #fbbf24;
             --accent-green: #10b981;
             
-            --lecture-glow: rgba(56, 189, 248, 0.1);
-            --section-glow: rgba(251, 191, 36, 0.1);
+            --card-lecture: rgba(56, 189, 248, 0.1);
+            --card-section: rgba(251, 191, 36, 0.1);
             
             --transition: all 0.3s ease;
         }
 
-        /* ===== الوضع النهاري (Light Theme) ===== */
+        /* ===== الوضع النهاري ===== */
         [data-theme="light"] {
-            --bg-base: #f0f4f8;
+            --bg-base: #f8fafc;
             --bg-card: #ffffff;
-            --bg-card-hover: #f8fafc;
+            --bg-cell: #f1f5f9;
             --text-primary: #0f172a;
             --text-secondary: #475569;
             --border-color: #cbd5e1;
@@ -43,8 +43,8 @@
             --accent-orange: #d97706;
             --accent-green: #059669;
             
-            --lecture-glow: rgba(37, 99, 235, 0.05);
-            --section-glow: rgba(217, 119, 6, 0.05);
+            --card-lecture: rgba(37, 99, 235, 0.08);
+            --card-section: rgba(217, 119, 6, 0.08);
         }
 
         * {
@@ -59,18 +59,18 @@
             background-color: var(--bg-base);
             color: var(--text-primary);
             padding: 15px 10px 40px 10px;
-            line-height: 1.6;
+            line-height: 1.5;
             min-height: 100vh;
-            transition: background-color 0.4s ease, color 0.4s ease;
+            transition: var(--transition);
         }
 
-        .main-wrapper {
-            max-width: 1000px;
+        .main-container {
+            max-width: 1400px;
             margin: 0 auto;
         }
 
-        /* ===== الشريط العلوي وأدوات التحكم ===== */
-        .top-nav {
+        /* ===== أدوات التحكم العلوية ===== */
+        .top-bar {
             display: flex;
             justify-content: space-between;
             align-items: center;
@@ -78,804 +78,723 @@
             padding: 0 5px;
         }
 
-        .controls {
-            display: flex;
-            gap: 10px;
-        }
+        .action-btns { display: flex; gap: 8px; }
 
         .btn-icon {
-            width: 42px;
-            height: 42px;
+            width: 42px; height: 42px;
             border-radius: 12px;
             border: 1px solid var(--border-color);
             background: var(--bg-card);
             color: var(--text-primary);
             font-size: 1.1rem;
             cursor: pointer;
-            display: flex;
-            align-items: center;
-            justify-content: center;
+            display: flex; align-items: center; justify-content: center;
             transition: var(--transition);
-            box-shadow: 0 2px 5px rgba(0,0,0,0.05);
         }
-        .btn-icon:hover { transform: translateY(-2px); border-color: var(--accent-blue); color: var(--accent-blue); }
-        
-        .btn-pdf { color: #ef4444; border-color: rgba(239, 68, 68, 0.3); }
+        .btn-icon:hover { border-color: var(--accent-blue); color: var(--accent-blue); transform: translateY(-2px); }
+        .btn-pdf { color: #ef4444; border-color: rgba(239, 68, 68, 0.4); }
         .btn-pdf:hover { background: rgba(239, 68, 68, 0.1); color: #ef4444; }
 
-        /* ساعة النظام الحية */
-        .status-bar {
-            display: inline-flex;
-            align-items: center;
-            gap: 8px;
+        .live-clock {
             background: var(--bg-card);
             border: 1px solid var(--border-color);
-            padding: 6px 16px;
+            padding: 6px 15px;
             border-radius: 20px;
-            font-weight: 700;
-            font-size: 0.9rem;
+            font-weight: 800;
+            font-size: 0.95rem;
             color: var(--text-secondary);
+            display: flex; align-items: center; gap: 8px;
         }
-        .status-dot {
-            width: 8px;
-            height: 8px;
-            background-color: var(--accent-green);
-            border-radius: 50%;
-            box-shadow: 0 0 8px var(--accent-green);
-            animation: blink 2s infinite;
-        }
+        .status-dot { width: 8px; height: 8px; background: var(--accent-green); border-radius: 50%; animation: blink 2s infinite; }
 
-        /* ===== رأس الصفحة (Header) ===== */
+        /* ===== رأس الصفحة ===== */
         .header { text-align: center; margin-bottom: 25px; }
-        .header h1 {
-            font-size: 2rem;
-            font-weight: 900;
-            color: var(--accent-blue);
-            margin-bottom: 5px;
-            line-height: 1.3;
-        }
+        .header h1 { font-size: 1.8rem; font-weight: 900; color: var(--accent-blue); margin-bottom: 5px; line-height: 1.3;}
         .header p { color: var(--text-secondary); font-size: 1rem; font-weight: 700; }
 
-        /* ===== فلاتر السكاشن (Mobile Grid Fixed) ===== */
+        /* ===== الفلاتر ===== */
         .filters {
-            display: grid;
-            grid-template-columns: repeat(3, 1fr); /* شبكة من 3 أعمدة إجبارية */
+            display: flex;
+            justify-content: center;
             gap: 10px;
-            margin-bottom: 30px;
-            padding: 0 5px;
+            margin-bottom: 25px;
         }
-
         .filter-btn {
-            background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            color: var(--text-secondary);
-            padding: 10px 0;
-            border-radius: 12px;
-            font-size: 1rem;
-            font-weight: 800;
-            font-family: inherit;
-            cursor: pointer;
-            transition: var(--transition);
-            text-align: center;
-            width: 100%;
+            background: var(--bg-card); border: 1px solid var(--border-color);
+            color: var(--text-secondary); padding: 10px 25px;
+            border-radius: 12px; font-size: 1rem; font-weight: 800; font-family: inherit;
+            cursor: pointer; transition: var(--transition);
         }
         .filter-btn:hover { color: var(--text-primary); border-color: var(--text-secondary); }
-        .filter-btn.active {
-            background: var(--accent-blue);
-            color: #fff;
-            border-color: var(--accent-blue);
-            box-shadow: 0 4px 15px rgba(56, 189, 248, 0.3);
-        }
+        .filter-btn.active { background: var(--accent-blue); color: #fff; border-color: var(--accent-blue); }
 
-        /* ===== تصميم الجدول والبطاقات ===== */
-        .schedule-grid {
-            display: flex;
-            flex-direction: column;
-            gap: 20px;
-        }
-
-        .day-container {
+        /* =========================================================
+           الجدول الأساسي (يظهر كجدول أفقي في الكمبيوتر والـ PDF) 
+           ========================================================= */
+        .schedule-table-wrapper {
+            width: 100%;
             background: var(--bg-card);
-            border: 1px solid var(--border-color);
-            border-radius: 20px;
-            overflow: hidden;
-            transition: var(--transition);
-            page-break-inside: avoid; /* لمنع انقسام اليوم في الـ PDF */
-        }
-
-        .day-header {
-            background: rgba(0,0,0,0.2);
-            padding: 12px 20px;
-            font-size: 1.3rem;
-            font-weight: 800;
-            color: var(--text-primary);
-            border-bottom: 1px solid var(--border-color);
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-        }
-        [data-theme="light"] .day-header { background: rgba(0,0,0,0.03); }
-
-        .day-body {
-            display: grid;
-            grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
-            gap: 15px;
-            padding: 15px;
-        }
-
-        /* البطاقة الذكية للمادة */
-        .subject-card {
-            background: var(--bg-base);
-            border: 1px solid var(--border-color);
             border-radius: 16px;
-            padding: 15px;
-            display: flex;
-            flex-direction: column;
-            gap: 10px;
-            transition: var(--transition);
-            position: relative;
+            border: 1px solid var(--border-color);
             overflow: hidden;
-            page-break-inside: avoid;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.05);
         }
-        .subject-card:hover { transform: translateY(-3px); border-color: var(--text-secondary); background: var(--bg-card-hover); }
 
-        .subject-card.lecture { box-shadow: 0 4px 20px var(--lecture-glow); border-right: 4px solid var(--accent-blue); }
-        .subject-card.section { box-shadow: 0 4px 20px var(--section-glow); border-right: 4px solid var(--accent-orange); }
+        .schedule-table {
+            width: 100%;
+            border-collapse: collapse;
+            text-align: right;
+            table-layout: fixed; /* لتوزيع الأعمدة بالتساوي */
+        }
+
+        .schedule-table th, .schedule-table td {
+            border: 1px solid var(--border-color);
+            padding: 15px;
+            vertical-align: top;
+        }
+
+        .schedule-table th {
+            background: rgba(0,0,0,0.15);
+            color: var(--text-primary);
+            font-weight: 800;
+            font-size: 1.1rem;
+            text-align: center;
+        }
+        [data-theme="light"] .schedule-table th { background: rgba(0,0,0,0.03); }
+        .schedule-table th span { display: block; font-size: 0.85rem; color: var(--text-secondary); font-weight: 600; }
+
+        .day-cell {
+            background: rgba(0,0,0,0.1);
+            font-weight: 900;
+            font-size: 1.3rem;
+            text-align: center;
+            vertical-align: middle !important;
+            width: 120px; /* عرض ثابت لعمود الأيام */
+        }
+        [data-theme="light"] .day-cell { background: rgba(0,0,0,0.02); }
+        
+        .day-badge {
+            display: inline-block; margin-top: 10px; font-size: 0.8rem;
+            color: var(--accent-green); background: rgba(16, 185, 129, 0.1);
+            padding: 4px 10px; border-radius: 20px; font-weight: bold;
+        }
+
+        /* ===== البطاقة الذكية للمادة ===== */
+        .subject-card {
+            background: var(--bg-cell); border: 1px solid var(--border-color);
+            border-radius: 12px; padding: 12px; margin-bottom: 10px;
+            display: flex; flex-direction: column; gap: 8px;
+            position: relative; overflow: hidden; transition: var(--transition);
+        }
+        .subject-card:last-child { margin-bottom: 0; }
+        .subject-card:hover { transform: translateY(-2px); border-color: var(--text-secondary); }
+
+        .subject-card.lecture { border-right: 4px solid var(--accent-blue); background: var(--card-lecture); }
+        .subject-card.section { border-right: 4px solid var(--accent-orange); background: var(--card-section); }
 
         .card-top { display: flex; justify-content: space-between; align-items: center; }
-        .course-code {
-            font-size: 0.85rem;
-            font-weight: 800;
-            padding: 4px 10px;
-            border-radius: 8px;
-            background: rgba(148, 163, 184, 0.1);
-        }
-        .subject-card.lecture .course-code { background: rgba(56, 189, 248, 0.15); color: var(--accent-blue); }
-        .subject-card.section .course-code { background: rgba(251, 191, 36, 0.15); color: var(--accent-orange); }
-        
-        .time-badge { font-size: 0.85rem; font-weight: 700; color: var(--text-secondary); }
+        .course-code { font-size: 0.8rem; font-weight: 800; padding: 2px 8px; border-radius: 6px; }
+        .subject-card.lecture .course-code { background: rgba(56, 189, 248, 0.2); color: var(--accent-blue); }
+        .subject-card.section .course-code { background: rgba(251, 191, 36, 0.2); color: var(--accent-orange); }
 
-        .subject-name { font-size: 1.15rem; font-weight: 800; color: var(--text-primary); line-height: 1.3; }
+        .subject-name { font-size: 1.05rem; font-weight: 800; color: var(--text-primary); line-height: 1.3; }
 
         .card-details {
-            display: flex;
-            flex-direction: column;
-            gap: 6px;
-            font-size: 0.9rem;
-            color: var(--text-secondary);
-            font-weight: 600;
-            margin-top: auto;
-            padding-top: 10px;
-            border-top: 1px dashed var(--border-color);
+            display: flex; flex-direction: column; gap: 4px;
+            font-size: 0.85rem; color: var(--text-secondary); font-weight: 600;
+            margin-top: 5px; border-top: 1px dashed var(--border-color); padding-top: 8px;
         }
         .detail-row { display: flex; align-items: center; gap: 8px; }
-        .detail-row i { width: 16px; text-align: center; opacity: 0.8; }
         
         .sec-badge {
-            display: inline-block;
-            background: var(--bg-base);
-            border: 1px solid var(--border-color);
-            padding: 2px 8px;
-            border-radius: 6px;
-            font-size: 0.8rem;
-            margin-right: auto;
+            display: inline-block; background: var(--bg-table); border: 1px solid var(--border-color);
+            padding: 1px 6px; border-radius: 4px; font-size: 0.75rem; margin-right: auto;
         }
 
-        /* ===== شريط تقدم المحاضرة الحالية (إصلاح البج) ===== */
+        /* التتبع الحي (الآن) */
         .now-badge {
-            display: none; /* مخفية افتراضياً */
-            position: absolute;
-            top: 0; left: 0;
-            background: var(--accent-green);
-            color: white;
-            font-size: 0.75rem;
-            font-weight: bold;
-            padding: 3px 12px;
-            border-radius: 0 0 12px 0;
-            z-index: 2;
+            display: none; position: absolute; top: 0; left: 0;
+            background: var(--accent-green); color: white; font-size: 0.7rem;
+            font-weight: bold; padding: 2px 10px; border-radius: 0 0 10px 0;
         }
-        .progress-bar-container {
-            display: none; /* مخفية افتراضياً */
-            height: 4px;
-            background: rgba(16, 185, 129, 0.2);
-            border-radius: 2px;
-            margin-top: 8px;
-            overflow: hidden;
-        }
+        .progress-bar-container { display: none; height: 4px; background: rgba(16, 185, 129, 0.2); border-radius: 2px; margin-top: 5px; }
         .progress-bar { height: 100%; background: var(--accent-green); width: 0%; transition: width 1s linear; }
 
-        /* تفعيل الكلاس عند وجود المحاضرة الآن */
-        .now-active {
-            border-color: var(--accent-green) !important;
-            background: rgba(16, 185, 129, 0.05) !important;
-            box-shadow: 0 0 15px rgba(16, 185, 129, 0.1) !important;
-        }
-        .now-active .now-badge { display: block; } /* تظهر فقط هنا */
-        .now-active .progress-bar-container { display: block; } /* تظهر فقط هنا */
+        .now-active { border-color: var(--accent-green) !important; background: rgba(16,185,129,0.05) !important; box-shadow: 0 0 10px rgba(16,185,129,0.1); }
+        .now-active .now-badge, .now-active .progress-bar-container { display: block; }
 
         .hidden { display: none !important; }
-        .free-day {
-            text-align: center;
-            padding: 30px 20px;
-            color: var(--text-secondary);
-            font-size: 1.1rem;
-            font-weight: 700;
-            display: none;
+
+        /* =========================================================
+           شكل الموبايل التفاعلي (Card Layout) 
+           يطبق فقط عندما تكون الشاشة صغيرة، ويلغى أوتوماتيكياً في الـ PDF
+           ========================================================= */
+        @media screen and (max-width: 850px) {
+            .filters {
+                display: grid;
+                grid-template-columns: repeat(3, 1fr);
+                padding: 0 5px; gap: 8px;
+            }
+            .filter-btn { padding: 8px 0; font-size: 0.95rem; width: 100%; border-radius: 10px; }
+
+            /* تحويل الجدول إلى كروت */
+            .schedule-table-wrapper { background: transparent; border: none; box-shadow: none; }
+            .schedule-table, .schedule-table tbody, .schedule-table tr, .schedule-table td { display: block; width: 100%; border: none; }
+            .schedule-table thead { display: none; } /* إخفاء رأس الجدول */
+
+            .schedule-table tr {
+                margin-bottom: 25px;
+                background: var(--bg-card);
+                border-radius: 20px;
+                border: 1px solid var(--border-color);
+                overflow: hidden;
+            }
+
+            .day-cell {
+                width: 100%;
+                text-align: right;
+                padding: 15px 20px;
+                font-size: 1.3rem;
+                display: flex;
+                justify-content: space-between;
+                align-items: center;
+                border-bottom: 1px solid var(--border-color) !important;
+            }
+            .day-badge { margin-top: 0; }
+
+            .schedule-table td:not(.day-cell) {
+                padding: 15px;
+                border-bottom: 1px solid rgba(0,0,0,0.05) !important;
+            }
+            .schedule-table td:last-child { border-bottom: none !important; }
+
+            /* إضافة العناوين الوهمية للفترات على الموبايل */
+            .schedule-table td:not(.day-cell)::before {
+                content: attr(data-label);
+                display: block;
+                font-size: 0.85rem; font-weight: 800; color: var(--text-secondary);
+                margin-bottom: 12px;
+                background: var(--bg-base); border: 1px solid var(--border-color);
+                padding: 4px 12px; border-radius: 8px; width: fit-content;
+            }
+            
+            /* إخفاء الصفوف الفارغة في الموبايل */
+            .empty-row-mobile { display: none !important; }
         }
-        .free-day i { font-size: 2rem; margin-bottom: 10px; color: var(--accent-blue); opacity: 0.5; display: block; }
+
+        /* =========================================================
+           إعدادات الـ PDF السحرية (تفرض شكل الكمبيوتر دائماً)
+           ========================================================= */
+        .pdf-mode {
+            background-color: var(--bg-base) !important;
+            padding: 15px !important;
+        }
+        .pdf-mode .hide-in-pdf { display: none !important; }
+        
+        /* إجبار الجدول على مظهر الكمبيوتر أثناء الطباعة حتى لو من الموبايل */
+        .pdf-mode .schedule-table-wrapper { background: var(--bg-card); border: 2px solid var(--border-color); }
+        .pdf-mode .schedule-table, .pdf-mode .schedule-table tbody, .pdf-mode .schedule-table tr, .pdf-mode .schedule-table th, .pdf-mode .schedule-table td {
+            display: table-cell !important;
+            width: auto !important;
+        }
+        .pdf-mode .schedule-table tr { display: table-row !important; margin: 0 !important; border-radius: 0 !important; }
+        .pdf-mode .schedule-table { display: table !important; width: 100% !important; min-width: 1000px !important; }
+        .pdf-mode .schedule-table thead { display: table-header-group !important; }
+        .pdf-mode .schedule-table th { display: table-cell !important; }
+        .pdf-mode .day-cell { display: table-cell !important; width: 100px !important; }
+        .pdf-mode .schedule-table td:not(.day-cell)::before { display: none !important; } /* إخفاء عناوين الموبايل */
+        
+        /* إظهار الصفوف الفارغة في الكمبيوتر للحفاظ على تماسك الجدول */
+        .pdf-mode .empty-row-mobile { display: table-row !important; }
 
         @keyframes blink { 0%, 100% { opacity: 1; } 50% { opacity: 0.4; } }
-
-        /* ===== التوافق مع شاشات الموبايل ===== */
-        @media screen and (max-width: 600px) {
-            .header h1 { font-size: 1.7rem; }
-            .day-body { grid-template-columns: 1fr; padding: 12px; gap: 12px; }
-            .filters { grid-template-columns: repeat(3, 1fr); gap: 8px; }
-            .filter-btn { font-size: 0.95rem; padding: 8px 0; }
-        }
-
-        /* ===== إعدادات الـ PDF (يتم تطبيقها فقط أثناء الطباعة) ===== */
-        .pdf-mode {
-            background: var(--bg-base) !important;
-            padding: 20px !important;
-        }
-        .pdf-mode .top-nav, .pdf-mode .filters {
-            display: none !important; /* إخفاء الأزرار في الـ PDF */
-        }
     </style>
 </head>
 <body>
 
-<div class="main-wrapper" id="content-to-print">
+<div class="main-container">
     
-    <!-- الشريط العلوي -->
-    <div class="top-nav">
-        <div class="status-bar">
+    <!-- أدوات التحكم -->
+    <div class="top-bar hide-in-pdf">
+        <div class="live-clock">
             <div class="status-dot"></div>
             <span id="liveTime">جاري المزامنة...</span>
         </div>
-        <div class="controls">
-            <button class="btn-icon btn-pdf" onclick="downloadPDF()" title="تحميل الجدول كـ PDF"><i class="fas fa-file-pdf"></i></button>
+        <div class="action-btns">
+            <button class="btn-icon btn-pdf" onclick="downloadPDF()" title="تحميل PDF"><i class="fas fa-file-pdf"></i></button>
             <button class="btn-icon" id="themeToggle" title="تبديل الوضع"><i class="fas fa-moon"></i></button>
         </div>
     </div>
 
-    <!-- رأس الصفحة -->
-    <div class="header">
-        <h1>الجدول الذكي | علوم حاسب</h1>
-        <p>المستوى الثالث - الربيع 2025/2026</p>
-    </div>
-
-    <!-- فلاتر السكاشن (Mobile Grid Fixed) -->
-    <div class="filters">
-        <button class="filter-btn active" onclick="filterSchedule('all')">الكل</button>
-        <button class="filter-btn" onclick="filterSchedule('1')">Sec 1</button>
-        <button class="filter-btn" onclick="filterSchedule('2')">Sec 2</button>
-        <button class="filter-btn" onclick="filterSchedule('3')">Sec 3</button>
-        <button class="filter-btn" onclick="filterSchedule('4')">Sec 4</button>
-        <button class="filter-btn" onclick="filterSchedule('5')">Sec 5</button>
-    </div>
-
-    <!-- الجدول الزمني -->
-    <div class="schedule-grid" id="schedule-grid">
-
-        <!-- =================== الأحد =================== -->
-        <div class="day-container" data-day="0">
-            <div class="day-header">الأحد <span class="day-badge" style="display:none; color: var(--accent-green); font-size: 0.85rem;"><i class="fas fa-calendar-day"></i> اليوم</span></div>
-            <div class="day-body">
-                
-                <div class="subject-card section" data-sec="1" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. هبه فضل <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2205</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="4" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 405</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">موضوعات مختارة 4</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 4</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2109</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="1" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2109</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2206</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="3" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 3</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2205</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card lecture" data-secs="2,3,4,5" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أحمد جابر <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 1220</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="1" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2109</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="5" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علي حماد <span class="sec-badge">Sec 5</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2206</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-            </div>
-            <div class="free-day"><i class="fas fa-mug-hot"></i> لا توجد محاضرات لك اليوم!</div>
+    <!-- المحتوى الذي سيتم تصويره في الـ PDF -->
+    <div id="pdf-content">
+        <!-- رأس الصفحة -->
+        <div class="header">
+            <h1>الجدول الذكي | علوم حاسب</h1>
+            <p>المستوى الثالث - الربيع 2025/2026</p>
         </div>
 
-        <!-- =================== الإثنين =================== -->
-        <div class="day-container" data-day="1">
-            <div class="day-header">الإثنين <span class="day-badge" style="display:none; color: var(--accent-green); font-size: 0.85rem;"><i class="fas fa-calendar-day"></i> اليوم</span></div>
-            <div class="day-body">
-                
-                <div class="subject-card lecture" data-secs="1,2,3,4" data-start="540" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 405</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 12:00</span>
-                    </div>
-                    <div class="subject-name">موضوعات مختارة 4</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أشرف فهمي <span class="sec-badge">محاضرة متصلة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 1220</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="5" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 5</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2203</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 408</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">الواقع الافتراضي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2206</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="3" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 3</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2105</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="5" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 5</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2109</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="1" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 405</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">موضوعات مختارة 4</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2103</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="4" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 408</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">الواقع الافتراضي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 4</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2206</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="5" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 5</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-            </div>
-            <div class="free-day"><i class="fas fa-mug-hot"></i> لا توجد محاضرات لك اليوم!</div>
+        <!-- فلاتر السكاشن (ستختفي في الـ PDF) -->
+        <div class="filters hide-in-pdf">
+            <button class="filter-btn active" onclick="filterSchedule('all')">الكل</button>
+            <button class="filter-btn" onclick="filterSchedule('1')">Sec 1</button>
+            <button class="filter-btn" onclick="filterSchedule('2')">Sec 2</button>
+            <button class="filter-btn" onclick="filterSchedule('3')">Sec 3</button>
+            <button class="filter-btn" onclick="filterSchedule('4')">Sec 4</button>
+            <button class="filter-btn" onclick="filterSchedule('5')">Sec 5</button>
         </div>
 
-        <!-- =================== الثلاثاء =================== -->
-        <div class="day-container" data-day="2">
-            <div class="day-header">الثلاثاء <span class="day-badge" style="display:none; color: var(--accent-green); font-size: 0.85rem;"><i class="fas fa-calendar-day"></i> اليوم</span></div>
-            <div class="day-body">
-                
-                <div class="subject-card lecture" data-secs="all" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. مروة العادلي <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
+        <!-- الجدول الهجين (كروت في الموبايل / جدول في الكمبيوتر والـ PDF) -->
+        <div class="schedule-table-wrapper">
+            <table class="schedule-table">
+                <thead>
+                    <tr>
+                        <th>اليوم</th>
+                        <th>الفترة 1 و 2 <span>09:00 - 10:30</span></th>
+                        <th>الفترة 3 و 4 <span>10:30 - 12:00</span></th>
+                        <th>الفترة 5 و 6 <span>12:00 - 13:30</span></th>
+                        <th>الفترة 7 و 8 <span>13:30 - 15:00</span></th>
+                    </tr>
+                </thead>
+                <tbody>
+                    <!-- الأحد -->
+                    <tr data-day="0" class="day-row">
+                        <td class="day-cell">الأحد <span class="day-badge" style="display:none;">اليوم</span></td>
+                        
+                        <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. هبه فضل <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2205</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 405</span></div>
+                                <div class="subject-name">موضوعات مختارة 4</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 4</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2109</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
 
-                <div class="subject-card lecture" data-secs="all" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أشرف فهمي <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
+                        <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2109</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2206</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="3">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 3</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2205</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
 
-                <div class="subject-card section" data-sec="4" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 4</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
+                        <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                            <div class="subject-card lecture" data-secs="2,3,4,5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أحمد جابر <span class="sec-badge">م (2,3,4,5)</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 1220</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
 
-                <div class="subject-card section" data-sec="1" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2205</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
+                        <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2109</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علي حماد <span class="sec-badge">Sec 5</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2206</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+                    </tr>
 
-                <div class="subject-card section" data-sec="5" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 308</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">معالجة الصور الرقمية</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد عز <span class="sec-badge">Sec 5</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-            </div>
-            <div class="free-day"><i class="fas fa-mug-hot"></i> لا توجد محاضرات لك اليوم!</div>
+                    <!-- الإثنين -->
+                    <tr data-day="1" class="day-row">
+                        <td class="day-cell">الإثنين <span class="day-badge" style="display:none;">اليوم</span></td>
+                        
+                        <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                            <div class="subject-card lecture" data-secs="1,2,3,4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 405</span></div>
+                                <div class="subject-name">موضوعات مختارة 4</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أشرف فهمي <span class="sec-badge">م (1,2,3,4)</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 1220</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                            <div class="subject-card lecture" data-secs="1,2,3,4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 405</span></div>
+                                <div class="subject-name">تكملة المحاضرة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أشرف فهمي</div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 1220</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 5</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2203</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 408</span></div>
+                                <div class="subject-name">الواقع الافتراضي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2206</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="3">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 3</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2105</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 5</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2109</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 405</span></div>
+                                <div class="subject-name">موضوعات مختارة 4</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2103</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 408</span></div>
+                                <div class="subject-name">الواقع الافتراضي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 4</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2206</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. نيفين <span class="sec-badge">Sec 5</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- الثلاثاء -->
+                    <tr data-day="2" class="day-row">
+                        <td class="day-cell">الثلاثاء <span class="day-badge" style="display:none;">اليوم</span></td>
+                        
+                        <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. مروة العادلي <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أشرف فهمي <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                            <div class="subject-card section" data-sec="4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 4</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2205</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="5">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 308</span></div>
+                                <div class="subject-name">معالجة صور رقمية</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد عز <span class="sec-badge">Sec 5</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- الأربعاء -->
+                    <tr data-day="3" class="day-row">
+                        <td class="day-cell">الأربعاء <span class="day-badge" style="display:none;">اليوم</span></td>
+                        
+                        <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2208</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. هبه فضل <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2105</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="4">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 401</span></div>
+                                <div class="subject-name">الذكاء الاصطناعي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 4</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 416</span></div>
+                                <div class="subject-name">إكتشاف المعرفة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أميمة جوهر <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3101</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 406</span></div>
+                                <div class="subject-name">تحليل بيانات كبيرة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. فرج محمود <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3102</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 405</span></div>
+                                <div class="subject-name">موضوعات مختارة 4</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. دينا أيمن <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2103</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="3">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 3</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+                    </tr>
+
+                    <!-- الخميس -->
+                    <tr data-day="4" class="day-row">
+                        <td class="day-cell">الخميس <span class="day-badge" style="display:none;">اليوم</span></td>
+                        
+                        <td data-label="الفترة 1 و 2 (09:00 - 10:30)" data-start="540" data-end="630">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 408</span></div>
+                                <div class="subject-name">الواقع الافتراضي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> أ.م.د. حسام البحيري <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 3 و 4 (10:30 - 12:00)" data-start="630" data-end="720">
+                            <div class="subject-card lecture" data-secs="all">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 306</span></div>
+                                <div class="subject-name">تصميم مترجمات</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. محمد عيسى <span class="sec-badge">محاضرة</span></div>
+                                    <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 5 و 6 (12:00 - 13:30)" data-start="720" data-end="810">
+                            <div class="subject-card section" data-sec="1">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. دينا جمال <span class="sec-badge">Sec 1</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2107</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="2">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 305</span></div>
+                                <div class="subject-name">شبكات حاسب متقدمة</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. علي حماد <span class="sec-badge">Sec 2</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2206</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                            <div class="subject-card section" data-sec="3">
+                                <span class="now-badge">الآن</span>
+                                <div class="card-top"><span class="course-code">CS 408</span></div>
+                                <div class="subject-name">الواقع الافتراضي</div>
+                                <div class="card-details">
+                                    <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 3</span></div>
+                                    <div class="detail-row"><i class="fas fa-map-marker-alt"></i> ق 2103</div>
+                                </div>
+                                <div class="progress-bar-container"><div class="progress-bar"></div></div>
+                            </div>
+                        </td>
+
+                        <td data-label="الفترة 7 و 8 (13:30 - 15:00)" data-start="810" data-end="900">
+                            <!-- فارغ -->
+                        </td>
+                    </tr>
+                </tbody>
+            </table>
         </div>
-
-        <!-- =================== الأربعاء =================== -->
-        <div class="day-container" data-day="3">
-            <div class="day-header">الأربعاء <span class="day-badge" style="display:none; color: var(--accent-green); font-size: 0.85rem;"><i class="fas fa-calendar-day"></i> اليوم</span></div>
-            <div class="day-body">
-                
-                <div class="subject-card section" data-sec="1" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2208</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. هبه فضل <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2105</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="4" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 401</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">الذكاء الاصطناعي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علاء عماد <span class="sec-badge">Sec 4</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card lecture" data-secs="all" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 416</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">إكتشاف المعرفة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. أميمة جوهر <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3101</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card lecture" data-secs="all" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 406</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">تحليل البيانات الكبيرة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. فرج محمود <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3102</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 405</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">موضوعات مختارة 4</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. دينا أيمن <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2103</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="3" data-start="810" data-end="900">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 1:30 - 3:00</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. أحمد مصطفى <span class="sec-badge">Sec 3</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-            </div>
-            <div class="free-day"><i class="fas fa-mug-hot"></i> لا توجد محاضرات لك اليوم!</div>
-        </div>
-
-        <!-- =================== الخميس =================== -->
-        <div class="day-container" data-day="4">
-            <div class="day-header">الخميس <span class="day-badge" style="display:none; color: var(--accent-green); font-size: 0.85rem;"><i class="fas fa-calendar-day"></i> اليوم</span></div>
-            <div class="day-body">
-                
-                <div class="subject-card lecture" data-secs="all" data-start="540" data-end="630">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 408</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 9:00 - 10:30</span>
-                    </div>
-                    <div class="subject-name">الواقع الافتراضي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> أ.م.د. حسام البحيري <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card lecture" data-secs="all" data-start="630" data-end="720">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 306</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 10:30 - 12:00</span>
-                    </div>
-                    <div class="subject-name">نظرية وتصميم المترجمات</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-chalkboard-teacher"></i> د. محمد عيسى <span class="sec-badge">محاضرة</span></div>
-                        <div class="detail-row"><i class="fas fa-building"></i> مدرج 3214</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="1" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م.م. دينا جمال <span class="sec-badge">Sec 1</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2107</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="2" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 305</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">شبكات الحاسب المتقدمة</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. علي حماد <span class="sec-badge">Sec 2</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2206</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-                <div class="subject-card section" data-sec="3" data-start="720" data-end="810">
-                    <span class="now-badge">الآن</span>
-                    <div class="card-top">
-                        <span class="course-code">CS 408</span>
-                        <span class="time-badge"><i class="far fa-clock"></i> 12:00 - 1:30</span>
-                    </div>
-                    <div class="subject-name">الواقع الافتراضي</div>
-                    <div class="card-details">
-                        <div class="detail-row"><i class="fas fa-user-tie"></i> م. ماريانا صفوت <span class="sec-badge">Sec 3</span></div>
-                        <div class="detail-row"><i class="fas fa-map-marker-alt"></i> قاعة 2103</div>
-                    </div>
-                    <div class="progress-bar-container"><div class="progress-bar"></div></div>
-                </div>
-
-            </div>
-            <div class="free-day"><i class="fas fa-mug-hot"></i> لا توجد محاضرات لك اليوم!</div>
-        </div>
-
     </div>
 </div>
 
@@ -904,7 +823,7 @@
     }
 
     // -----------------------------------------------------------------
-    // الفلترة وإخفاء الأيام الفارغة
+    // الفلترة وإخفاء الفترات الفارغة للموبايل
     // -----------------------------------------------------------------
     function filterSchedule(secId) {
         document.querySelectorAll('.filter-btn').forEach(btn => btn.classList.remove('active'));
@@ -922,27 +841,31 @@
 
             card.classList.toggle('hidden', !show);
         });
-        checkEmptyDays();
-    }
-
-    function checkEmptyDays() {
-        document.querySelectorAll('.day-container').forEach(day => {
-            const body = day.querySelector('.day-body');
-            const visibleCards = body.querySelectorAll('.subject-card:not(.hidden)');
-            const freeDayMsg = day.querySelector('.free-day');
-            
-            if (visibleCards.length === 0) {
-                body.style.display = 'none';
-                freeDayMsg.style.display = 'block';
+        
+        // إخفاء الـ td الفارغ في الموبايل والكمبيوتر
+        document.querySelectorAll('td:not(.day-cell)').forEach(td => {
+            const visibleCards = td.querySelectorAll('.subject-card:not(.hidden)');
+            if(visibleCards.length === 0) {
+                // إخفاء الخلية في الموبايل
+                if(window.innerWidth <= 850) td.style.display = 'none';
             } else {
-                body.style.display = 'grid';
-                freeDayMsg.style.display = 'none';
+                if(window.innerWidth <= 850) td.style.display = 'block';
+            }
+        });
+
+        // إخفاء الأيام التي لا تحتوي على أي محاضرات
+        document.querySelectorAll('.day-row').forEach(row => {
+            const visibleCards = row.querySelectorAll('.subject-card:not(.hidden)');
+            if(visibleCards.length === 0) {
+                row.classList.add('empty-row-mobile');
+            } else {
+                row.classList.remove('empty-row-mobile');
             }
         });
     }
 
     // -----------------------------------------------------------------
-    // التتبع المباشر (إصلاح وتدقيق الوقت)
+    // التتبع الحي (Live Tracker)
     // -----------------------------------------------------------------
     function updateSystemTime() {
         const now = new Date();
@@ -950,63 +873,70 @@
         document.getElementById('liveTime').innerText = now.toLocaleTimeString('ar-EG', timeOptions);
 
         const currentDay = now.getDay(); 
-        const currentMinutes = now.getHours() * 60 + now.getMinutes(); // إجمالي الدقائق من منتصف الليل
+        const currentMinutes = now.getHours() * 60 + now.getMinutes();
 
-        document.querySelectorAll('.day-container').forEach(dayDiv => {
-            const isToday = parseInt(dayDiv.getAttribute('data-day')) === currentDay;
-            dayDiv.style.borderColor = isToday ? 'var(--accent-green)' : 'var(--border-color)';
-            dayDiv.querySelector('.day-badge').style.display = isToday ? 'inline-block' : 'none';
+        document.querySelectorAll('.day-row').forEach(row => {
+            const isToday = parseInt(row.getAttribute('data-day')) === currentDay;
+            row.querySelector('.day-badge').style.display = isToday ? 'inline-block' : 'none';
 
-            dayDiv.querySelectorAll('.subject-card').forEach(card => {
-                const start = parseInt(card.getAttribute('data-start'));
-                const end = parseInt(card.getAttribute('data-end'));
+            row.querySelectorAll('td[data-start]').forEach(cell => {
+                const start = parseInt(cell.getAttribute('data-start'));
+                const end = parseInt(cell.getAttribute('data-end'));
                 
-                // الشرط الحاسم: هل نحن في نفس اليوم؟ وهل الوقت الحالي بين البداية والنهاية؟
-                if (isToday && currentMinutes >= start && currentMinutes < end) {
-                    card.classList.add('now-active');
-                    const percentage = ((currentMinutes - start) / (end - start)) * 100;
-                    card.querySelector('.progress-bar').style.width = `${percentage}%`;
-                } else {
-                    card.classList.remove('now-active'); // إزالة كلمة الآن وتأثيراتها
-                }
+                cell.querySelectorAll('.subject-card').forEach(card => {
+                    if (isToday && currentMinutes >= start && currentMinutes < end) {
+                        card.classList.add('now-active');
+                        const percentage = ((currentMinutes - start) / (end - start)) * 100;
+                        card.querySelector('.progress-bar').style.width = `${percentage}%`;
+                    } else {
+                        card.classList.remove('now-active');
+                    }
+                });
             });
         });
     }
 
     // -----------------------------------------------------------------
-    // ميزة تحميل الجدول كـ PDF
+    // تحميل PDF (يفرض مقاس شاشة الكمبيوتر 1200px)
     // -----------------------------------------------------------------
     function downloadPDF() {
-        const element = document.getElementById('content-to-print');
+        const content = document.getElementById('pdf-content');
+        content.classList.add('pdf-mode'); // إضافة كلاس لتجهيز بعض الخصائص الخاصة بالطباعة
         
-        // تجهيز الصفحة للطباعة (إخفاء الأزرار مؤقتاً)
-        element.classList.add('pdf-mode');
-        
-        // تحديد اسم الملف بناءً على السكشن المختار
         const activeSec = document.querySelector('.filter-btn.active').innerText;
         const fileName = activeSec === 'الكل' ? 'جدول_جميع_السكاشن.pdf' : `جدول_${activeSec}.pdf`;
 
-        // إعدادات مكتبة html2pdf
+        // إعدادات مكتبة التحويل
         const opt = {
-            margin:       [10, 10, 10, 10], // حواف
+            margin:       [5, 5, 5, 5],
             filename:     fileName,
-            image:        { type: 'jpeg', quality: 1 },
-            html2canvas:  { scale: 2, useCORS: true, letterRendering: true },
+            image:        { type: 'jpeg', quality: 0.98 },
+            html2canvas:  { 
+                scale: 2, 
+                useCORS: true, 
+                windowWidth: 1200 // << هذا هو السطر السحري الذي يخدع المكتبة ويجعلها تصور كأنها من كمبيوتر!
+            },
             jsPDF:        { unit: 'mm', format: 'a4', orientation: 'portrait' }
         };
 
-        // توليد الـ PDF
-        html2pdf().set(opt).from(element).save().then(() => {
-            // إعادة الأزرار بعد التحميل
-            element.classList.remove('pdf-mode');
+        html2pdf().set(opt).from(content).save().then(() => {
+            content.classList.remove('pdf-mode'); // إعادة الموقع لشكله الطبيعي على الموبايل
         });
     }
 
+    // التهيئة
     document.addEventListener('DOMContentLoaded', () => {
         updateSystemTime();
-        checkEmptyDays();
+        filterSchedule('all'); // تشغيل الفلتر الافتراضي لضبط العرض
         setInterval(updateSystemTime, 60000); 
     });
+    
+    // إعادة ضبط الفلتر عند تغيير حجم الشاشة (دوران الموبايل)
+    window.addEventListener('resize', () => {
+        const activeSec = document.querySelector('.filter-btn.active').getAttribute('onclick').match(/'([^']+)'/)[1];
+        filterSchedule(activeSec);
+    });
+
 </script>
 
 </body>
